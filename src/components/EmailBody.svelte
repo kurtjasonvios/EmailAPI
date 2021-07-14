@@ -3,13 +3,12 @@
     import ProfileHead from "./ProfileHead.svelte";
     import { token } from "../stores";
     import MailAPI from "../MailAPI";
-    //import { writable } from "svelte/store";
-    //export const message = writable([]);
 
-    export let params;
-    let message = {};
+    export let params;    
+    let promise = Promise.resolve();
 
-    onMount(async () => {
+    async function loadMessage()
+    {
         console.log(params.id);
 
         let response = await MailAPI.getMessageBody(params.id, $token);
@@ -18,35 +17,27 @@
             let item = await response.json();
             console.log(item);
             
-            message = {
+            let message = {
                 subject: item['subject'],
                 name: item['from'].name,
                 address: item['from'].address,
                 text: item['text']
             };
 
-            //message = message;
-
-            //message = itemList['subject'];
-            //console.log(item['subject']);
             console.log(message);
-            //return message;
 
             await MailAPI.messageSeen(params.id, $token);
-		} else {
-			//console.log('asdfasdfasdf');
-            throw new Error(users);
-		}
-    })
 
-    /*let message = {
-        subject: "testing 3",
-        from: {
-            name: "Kurt Vios",
-            address: "kurtjasonvios@gmail.com"
-        },
-        text: "asdfasdfasdfasdfasdf"
-    }*/
+            return message;
+        } else {
+            //console.log('asdfasdfasdf');
+            throw new Error(users);
+        }
+    }
+
+    onMount(async () => {
+        promise = loadMessage();
+    })
 </script>
 
 <style>
@@ -71,9 +62,15 @@
 </style>
 
 <ProfileHead/>
-<div class="subject">{message.subject}</div>
-<div class="messagebody">
-    <div style="font-weight: bold;">{message.name}</div>
-    <div style="font-size: small;">{message.address}</div>    
-</div>
-<div class="messagetext">{message.text}</div>
+{#await promise}
+    <div style="text-align: center; margin-top: 20px;">We are fetching your email...</div>
+{:then message}
+    <div class="subject">{message.subject}</div>
+    <div class="messagebody">
+        <div style="font-weight: bold;">{message.name}</div>
+        <div style="font-size: small;">{message.address}</div>    
+    </div>
+    <div class="messagetext">{message.text}</div>
+{:catch error}
+	<p style="color: red">{error.message}</p>
+{/await}
