@@ -3,9 +3,11 @@
     import MailAPI from "../MailAPI";
     import { token, user } from "../stores";
 
-    let username = "", password = "";
+    let username = "", password = "", disabled = false;
 
     async function triggerLogin() {
+        disabled = true;
+
         let response = await MailAPI.login(username, password);
 
         if (response.ok) {
@@ -21,7 +23,9 @@
 
             router('/profile');
 		} else {
-			console.log('asdfasdfasdf');
+            disabled = false;
+
+			console.log('I AM AN ERROR');
 		}
     }
 </script>
@@ -47,9 +51,11 @@
 </style>
       
 <form class="container" on:submit|preventDefault={triggerLogin}>
-    <input type="text" bind:value="{username}"  placeholder="Username"/>
-    <br>
-    <input type="password" bind:value="{password}"  placeholder="Password"/>
-    <br>
-    <button type="submit">LOGIN</button>
+    <fieldset {disabled}>
+        <input type="text" bind:value="{username}"  placeholder="Username"/>
+        <br>
+        <input type="password" bind:value="{password}"  placeholder="Password"/>
+        <br>
+        <button type="submit">LOGIN</button>
+    </fieldset>
 </form>
